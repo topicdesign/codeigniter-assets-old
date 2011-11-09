@@ -83,7 +83,7 @@ class Assets {
         {
             if($key == 'groups')
             {
-                foreach($value as $group_name => $assets)
+                foreach($val as $group_name => $assets)
                 {
 					$this->group($group_name, $assets);
 				}
@@ -136,29 +136,23 @@ class Assets {
 	{	
         if( is_array($dev_file) )
         {
-            if( is_array($dev_file[0]) )
+            foreach($dev_file as $file)
             {
-                foreach($dev_file as $file)
+                if (is_array($file))
                 {
-					$d = $file[0];
-					$p = (isset($file[1])) ? $file[1] : '';
-					$c = (isset($file[2])) ? $file[2] : $combine;
-					$m = (isset($file[3])) ? $file[3] : $minify;
-					$g = (isset($file[4])) ? $file[4] : $group;
+                    $d = $file[0];
+                    $p = (isset($file[1])) ? $file[1] : '';
+                    $c = (isset($file[2])) ? $file[2] : $combine;
+                    $m = (isset($file[3])) ? $file[3] : $minify;
+                    $g = (isset($file[4])) ? $file[4] : $group;
 
-					$this->_asset('js', $d, $p, $c, $m, NULL, $g);
-				}
+                    $this->js($d, $p, $c, $m, $g);
+                }
+                else
+                {
+                    $this->js($file, '', $combine, $minify, $group);
+                }
             }
-            else
-            {
-				$d = $dev_file[0];
-				$p = (isset($dev_file[1])) ? $dev_file[1] : '';
-				$c = (isset($dev_file[2])) ? $dev_file[2] : $combine;
-				$m = (isset($dev_file[3])) ? $dev_file[3] : $minify;
-				$g = (isset($dev_file[4])) ? $dev_file[4] : $group;
-
-				$this->_asset('js', $d, $p, $c, $m, NULL, $g);
-			}
         }
         else
         {
@@ -185,31 +179,24 @@ class Assets {
 	{
         if(is_array($dev_file))
         {
-            if(is_array($dev_file[0]))
+            foreach($dev_file as $file)
             {
-                foreach($dev_file as $file)
+                if (is_array($file))
                 {
-					$d = $file[0];
-					$m = (isset($file[1])) ? $file[1] : $media;
-					$p = (isset($file[2])) ? $file[2] : '';
-					$c = (isset($file[3])) ? $file[3] : $combine;
-					$y = (isset($file[4])) ? $file[4] : $minify;
-					$g = (isset($file[5])) ? $file[5] : $group;
+                    $d = $file[0];
+                    $m = (isset($file[1])) ? $file[1] : $media;
+                    $p = (isset($file[2])) ? $file[2] : '';
+                    $c = (isset($file[3])) ? $file[3] : $combine;
+                    $y = (isset($file[4])) ? $file[4] : $minify;
+                    $g = (isset($file[5])) ? $file[5] : $group;
 
-					$this->_asset('css', $d, $p, $c, $y, $m, $g);
-				}
+                    $this->css($d, $m, $p, $c, $y, $g);
+                }
+                else
+                {
+					$this->css($file, $media, $prod_file, $combine, $minify, $group);
+                }
             }
-            else
-            {
-				$d = $dev_file[0];
-				$m = (isset($dev_file[1])) ? $dev_file[1] : $media;
-				$p = (isset($dev_file[2])) ? $dev_file[2] : '';
-				$c = (isset($dev_file[3])) ? $dev_file[3] : $combine;
-				$y = (isset($dev_file[4])) ? $dev_file[4] : $minify;
-				$g = (isset($dev_file[5])) ? $dev_file[5] : $group;
-									
-				$this->_asset('css', $d, $p, $c, $y, $m, $g);
-			}
         }
         else
         {
@@ -263,30 +250,25 @@ class Assets {
      * @return  void
      */
     private function _asset($type, $dev_file, $prod_file = '', $combine, $minify, $media = 'screen', $group = 'main')
-	{
-        if ($type == 'css')
+    {
+        $asset = array(
+            'dev'       => $dev_file,
+			'combine'	=> $combine,
+			'minify'	=> $minify
+        );
+        if ( ! empty($prod_file))
         {
-			$this->css[$group][$media][] = array( 'dev'=>$dev_file );
-			$index = count($this->css[$group][$media]) - 1;
-
-            if($prod_file != '')
-            {
-                $this->css[$group][$media][$index]['prod'] = $prod_file;
-            }
-			$this->css[$group][$media][$index]['combine'] = $combine;
-			$this->css[$group][$media][$index]['minify'] = $minify;
+            $asset['prod_file'] = $prod_file;
         }
-        else
+
+        switch ($type)
         {
-			$this->js[$group][] = array( 'dev'=>$dev_file );
-			$index = count($this->js[$group]) - 1;
-			
-            if($prod_file != '')
-            {
-                $this->js[$group][$index]['prod'] = $prod_file;
-            }
-			$this->js[$group][$index]['combine'] = $combine;
-			$this->js[$group][$index]['minify'] = $minify;
+            case 'css':
+                $this->css[$group][$media][] = $asset;
+                break;
+            case 'js':
+                $this->js[$group][] = $asset;
+                break;
         }
 	}
 
